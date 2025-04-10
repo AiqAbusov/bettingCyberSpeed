@@ -94,7 +94,7 @@
           "column": 0,
           "row": 3,
           "symbols": {
-            "A": 1,
+            "A": 100,
             "B": 2,
             "C": 3,
             "D": 4,
@@ -118,7 +118,7 @@
           "column": 1,
           "row": 1,
           "symbols": {
-            "A": 1,
+            "A": 100,
             "B": 2,
             "C": 3,
             "D": 4,
@@ -130,7 +130,7 @@
           "column": 1,
           "row": 2,
           "symbols": {
-            "A": 1,
+            "A": 100,
             "B": 2,
             "C": 3,
             "D": 4,
@@ -166,7 +166,7 @@
           "column": 2,
           "row": 1,
           "symbols": {
-            "A": 1,
+            "A": 100,
             "B": 2,
             "C": 3,
             "D": 4,
@@ -178,7 +178,7 @@
           "column": 2,
           "row": 2,
           "symbols": {
-            "A": 1,
+            "A": 100,
             "B": 2,
             "C": 3,
             "D": 4,
@@ -202,7 +202,7 @@
           "column": 3,
           "row": 0,
           "symbols": {
-            "A": 1,
+            "A": 100,
             "B": 2,
             "C": 3,
             "D": 4,
@@ -238,7 +238,7 @@
           "column": 3,
           "row": 3,
           "symbols": {
-            "A": 1,
+            "A": 100,
             "B": 2,
             "C": 3,
             "D": 4,
@@ -304,7 +304,7 @@
     },
 
     "same_symbols_horizontally": {
-      "reward_multiplier": 2,
+      "reward_multiplier": 5,
       "when": "linear_symbols",
       "group": "horizontally_linear_symbols",
       "covered_areas": [
@@ -314,7 +314,7 @@
       ]
     },
     "same_symbols_vertically": {
-      "reward_multiplier": 2,
+      "reward_multiplier": 5,
       "when": "linear_symbols",
       "group": "vertically_linear_symbols",
       "covered_areas": [

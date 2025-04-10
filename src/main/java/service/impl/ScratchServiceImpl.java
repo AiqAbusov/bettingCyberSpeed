@@ -19,8 +19,11 @@ import java.util.function.Predicate;
 public class ScratchServiceImpl implements ScratcherService {
     private GamingConfigurationDTO gamingConfigurationDTO;
 
-    private static final int HORIZONTAL_KEY = 10;
-    private static final int VERTICAL_KEY = 11;
+    private static final int HORIZONTAL_KEY_PREFIX = 10;
+    private static final int VERTICAL_KEY_PREFIX = 11;
+
+    private static final int RIGHT_DIAGONAL_PREFIX = 12;
+    private static final int LEFT_DIAGONAL_PREFIX = 13;
 
     private HashMap<String, Double> symbolMultiplierMap = new HashMap<>();
     private HashMap<String, Double> symbolRewardMultiplier = new HashMap<>();
@@ -41,6 +44,8 @@ public class ScratchServiceImpl implements ScratcherService {
 
         checkHorizontalPattern(scratcher);
         checkVerticalPattern(scratcher);
+        checkLeftDiagonalPattern(scratcher);
+        checkRightDiagonalPattern(scratcher);
 
         countSymbols(scratcher, counterMap);
         log.debug("Symbol counts after scanning the scratcher: {}", counterMap);
@@ -61,34 +66,6 @@ public class ScratchServiceImpl implements ScratcherService {
 
         System.err.println(appliedPatterns);
         return generateResponse(result, scratcher);
-    }
-
-    public void sameSymbolThreeTimes(String[][] scratcher, Double betAmount) {
-        log.info("Starting the process for checking same symbol 3 times win combination...");
-        loadPatterns();
-
-        HashMap<String, Integer> counterMap = new HashMap<>();
-        log.debug("Initialized counterMap: {}", counterMap);
-
-        checkHorizontalPattern(scratcher);
-        checkVerticalPattern(scratcher);
-
-        countSymbols(scratcher, counterMap);
-        log.debug("Symbol counts after scanning the scratcher: {}", counterMap);
-
-        Double result = 0.0;
-        HashSet<String> bonusSet = new HashSet<>();
-
-        generateMultiplerForSymbols(counterMap, bonusSet); // Generate multipliers for symbols
-        log.debug("Symbol multipliers after processing: {}", symbolMultiplierMap);
-
-        result = applyMultipliers(betAmount, result); // Apply the multipliers to the result
-        log.debug("Result after applying multipliers: {}", result);
-
-        result = applyBonuses(result, bonusSet); // Apply the bonus multipliers if any
-        log.debug("Result after applying bonuses: {}", result);
-
-        log.info("Final calculated result: {}", result);
     }
 
     private Double applyMultipliers(Double betAmount, Double result) {
@@ -187,23 +164,27 @@ public class ScratchServiceImpl implements ScratcherService {
                     counter = 1;
                 }
 
-                if (counter >= 3) {
-                    symbolMultiplierMap.putIfAbsent(scratcher[i][j], 1.0);
-                    symbolMultiplierMap.put(scratcher[i][j], symbolMultiplierMap.get(scratcher[i][j])
-                            * winningPatternMultiplier.get(VERTICAL_KEY));
-                    log.debug("Vertical pattern matched for symbol {}. Updated multiplier: {}", scratcher[i][j], symbolMultiplierMap.get(scratcher[i][j]));
-
-                    if (appliedPatterns.get(scratcher[i][j]) == null) {
-                        ArrayList<String> list = new ArrayList<>();
-
-                        list.add(winningPatternNames.get(VERTICAL_KEY));
-
-                        appliedPatterns.put(scratcher[i][j], list);
-                    } else {
-                        appliedPatterns.get(scratcher[i][j]).add((winningPatternNames.get(VERTICAL_KEY)));
-                    }
+                if (counter >= 4) {
+                    populatePattern(scratcher, j, i, VERTICAL_KEY_PREFIX);
                 }
             }
+        }
+    }
+
+    private void populatePattern(String[][] scratcher, int j, int i, int prefix) {
+        symbolMultiplierMap.putIfAbsent(scratcher[i][j], 1.0);
+        symbolMultiplierMap.put(scratcher[i][j], symbolMultiplierMap.get(scratcher[i][j])
+                * winningPatternMultiplier.get(prefix));
+        log.debug("Vertical pattern matched for symbol {}. Updated multiplier: {}", scratcher[i][j], symbolMultiplierMap.get(scratcher[i][j]));
+
+        if (appliedPatterns.get(scratcher[i][j]) == null) {
+            ArrayList<String> list = new ArrayList<>();
+
+            list.add(winningPatternNames.get(prefix));
+
+            appliedPatterns.put(scratcher[i][j], list);
+        } else {
+            appliedPatterns.get(scratcher[i][j]).add((winningPatternNames.get(prefix)));
         }
     }
 
@@ -218,33 +199,45 @@ public class ScratchServiceImpl implements ScratcherService {
                     counter = 1;
                 }
 
-                if (counter >= 3) {
-                    symbolMultiplierMap.putIfAbsent(scratcher[i][j], 1.0);
-                    symbolMultiplierMap.put(scratcher[i][j], symbolMultiplierMap.get(scratcher[i][j])
-                            * winningPatternMultiplier.get(HORIZONTAL_KEY));
-
-                    if (appliedPatterns.get(scratcher[i][j]) == null) {
-
-                        ArrayList<String> list = new ArrayList<>();
-                        list.add(winningPatternNames.get(HORIZONTAL_KEY));
-
-                        appliedPatterns.put(scratcher[i][j], list);
-
-                    } else {
-                        appliedPatterns.get(scratcher[i][j]).add((winningPatternNames.get(HORIZONTAL_KEY)));
-                    }
-
-                    log.debug("Horizontal pattern matched for symbol {}. Updated multiplier: {}", scratcher[i][j], symbolMultiplierMap.get(scratcher[i][j]));
+                if (counter >= 4) {
+                    populatePattern(scratcher, j, i, HORIZONTAL_KEY_PREFIX);
                 }
             }
         }
+    }
+
+    public void checkLeftDiagonalPattern(String[][] scratcher) {
+        String previous = scratcher[0][0];
+        for (int i = 1; i < scratcher.length; i++) {
+            System.err.println(scratcher[i][i] + " " + previous);
+            System.err.println(i);
+            if (!scratcher[i][i].equals(previous)) {
+                return;
+            }
+        }
+
+        populatePattern(scratcher, 0, 0, LEFT_DIAGONAL_PREFIX);
+
+    }
+
+
+    public void checkRightDiagonalPattern(String[][] scratcher) {
+        String previous = scratcher[0][scratcher[0].length - 1];
+        for (int i = 1, j = scratcher[0].length - 2; i < scratcher.length; i++, j--) {
+
+            if (!scratcher[i][j].equals(previous)) {
+                return;
+            }
+        }
+
+        populatePattern(scratcher, scratcher[0].length - 1, 0, RIGHT_DIAGONAL_PREFIX);
     }
 
 
     private String generateResponse(Double result, String[][] matrix) {
         ScratcherResponseDTO responseDTO = new ScratcherResponseDTO();
         ObjectMapper objectMapper = new ObjectMapper();
-        String response = "ERROR";
+        String response;
 
         responseDTO.setReward(result);
         responseDTO.setAppliedWinningCombinations(appliedPatterns);
@@ -281,11 +274,18 @@ public class ScratchServiceImpl implements ScratcherService {
             WinCombinationDTO winCombinationDTO = entries.getValue();
 
             if (ScratchUtility.isSameSymbolsHorizontally.test(winCombinationDTO)) {
-                winningPatternMultiplier.put(HORIZONTAL_KEY, winCombinationDTO.getRewardMultiplier());
-                winningPatternNames.put(HORIZONTAL_KEY, entries.getKey());
+                winningPatternMultiplier.put(HORIZONTAL_KEY_PREFIX, winCombinationDTO.getRewardMultiplier());
+                winningPatternNames.put(HORIZONTAL_KEY_PREFIX, entries.getKey());
             } else if (ScratchUtility.isVerticallyLinearSymbols.test(winCombinationDTO)) {
-                winningPatternMultiplier.put(VERTICAL_KEY, winCombinationDTO.getRewardMultiplier());
-                winningPatternNames.put(VERTICAL_KEY, entries.getKey());
+                winningPatternMultiplier.put(VERTICAL_KEY_PREFIX, winCombinationDTO.getRewardMultiplier());
+                winningPatternNames.put(VERTICAL_KEY_PREFIX, entries.getKey());
+            } else if (ScratchUtility.isRightDiagonal.test(winCombinationDTO)) {
+                winningPatternMultiplier.put(RIGHT_DIAGONAL_PREFIX, winCombinationDTO.getRewardMultiplier());
+                winningPatternNames.put(RIGHT_DIAGONAL_PREFIX, entries.getKey());
+            } else if (ScratchUtility.isLeftDiagonal.test(winCombinationDTO)) {
+                winningPatternMultiplier.put(LEFT_DIAGONAL_PREFIX, winCombinationDTO.getRewardMultiplier());
+                winningPatternNames.put(LEFT_DIAGONAL_PREFIX, entries.getKey());
+
             } else if (ScratchUtility.isSameSymbol.test(winCombinationDTO)) {
                 Integer count = winCombinationDTO.getCount();
                 Double multiplier = winCombinationDTO.getRewardMultiplier();

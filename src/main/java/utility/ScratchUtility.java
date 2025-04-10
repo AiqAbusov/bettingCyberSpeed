@@ -31,6 +31,17 @@ public final class ScratchUtility {
                             winCombinationDTO.getGroup().equals("vertically_linear_symbols");
 
 
+    public static Predicate<WinCombinationDTO> isRightDiagonal =
+            (winCombinationDTO) ->
+                    winCombinationDTO.getWhen().equals("linear_symbols") &&
+                            winCombinationDTO.getGroup().equals("rtl_diagonally_linear_symbols");
+
+
+    public static Predicate<WinCombinationDTO> isLeftDiagonal =
+            (winCombinationDTO) ->
+                    winCombinationDTO.getWhen().equals("linear_symbols") &&
+                            winCombinationDTO.getGroup().equals("ltr_diagonally_linear_symbols");
+
     public static Predicate<String> is5xBonus = bonus -> bonus.equals("5x");
     public static Function<Double, Double> function5xBonus = s -> {
         if (s == 0) {
